@@ -4,6 +4,7 @@ from groq import Groq
 import asyncio
 import logging
 from dotenv import load_dotenv
+import os
 
 load_dotenv()
 
@@ -39,7 +40,7 @@ class bchat(commands.Cog):
         Maintain a consistent approach in your responses to build user trust.
         Regularly update your knowledge base to provide the most current and accurate information.
 
-"""  # Truncated for brevity
+"""
         self.logger = logging.getLogger(__name__)
 
 
