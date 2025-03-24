@@ -133,6 +133,7 @@ class JailUser(commands.Cog):
 
         await asyncio.gather(*tasks)
         await ctx.message.delete()  # Delete the author's message
+        await reply_message.delete()  # Delete the reply message
 
     @commands.command(name="jail")
     @commands.max_concurrency(
@@ -317,7 +318,6 @@ class JailUser(commands.Cog):
             await asyncio.sleep(5)
             await reply_message.delete()
         await ctx.message.delete()  # Delete the author's message
-    """
     @commands.Cog.listener()
     async def on_member_join(self, member):
         # Only process for specific guild
@@ -354,7 +354,6 @@ class JailUser(commands.Cog):
 
             except discord.Forbidden:
                 print(f"Could not process new member {member.id}")
-    """
     async def send_temp_message(self, ctx, content, delay=3):
         if ctx.channel:
             message = await ctx.channel.send(content)
