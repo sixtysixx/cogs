@@ -480,7 +480,7 @@ class JailUser(commands.Cog):
                                 f"🔒 Manual Jail Role Enforcement:\n"
                                 f"• User: {member.mention} (ID: {member.id})\n"
                                 f"• Roles Removed: {role_names}\n"
-                                f"• Initiated by: {ctx.author.mention}"
+                                f"• Initiated by: {ctx.author} "
                             )
                             await log_channel.send(log_message)
 
