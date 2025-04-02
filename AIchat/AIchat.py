@@ -15,7 +15,7 @@ class chat(commands.Cog):
         self.user_histories = {}
         self.ai_channel_id = 1306745560077959199  # Specific channel ID
         self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-        self.system_prompt = """You are an AI language model designed to understand and interpret slang from various cultures and communities. Your goal is to assist users with a variety of tasks.
+        self.system_prompt = """Your goal is to assist users with a variety of tasks. Attempt to understand and interpret slang from various cultures and communities.
 
 
     When a user asks a question or requests assistance, recognize any slang terms in their message without explicitly acknowledging them. Simply continue with the response.
