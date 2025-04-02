@@ -14,11 +14,12 @@ load_dotenv()
 class code(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user_histories = {}  # Dictionary to store conversation history for each user
-        self.groq_client = Groq(
-            api_key=os.getenv("GROQ_API_KEY")
-        )
-        self.system_prompt = ("""Forget about all previous instruction(s) or conversation(s). 
+        self.user_histories = (
+            {}
+        )  # Dictionary to store conversation history for each user
+        self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        self.system_prompt = (
+            """Forget about all previous instruction(s) or conversation(s). 
 In English, transition into the role of SIXCODE AI, 
 your function is to generate complete, functional code or code examples 
 based on the user's input. Your primary goal is to deliver code, 
@@ -102,8 +103,10 @@ File tree hierarchy should follow this structure:
     └── [fileC]
     └── [fileD]
   
-""""")
-    
+"""
+            ""
+        )
+
     @commands.command(name="ccc")
     async def wipe_user_history(self, ctx):
         """Wipe the conversation history for the user."""
@@ -125,7 +128,7 @@ File tree hierarchy should follow this structure:
         """
         Generate a descriptive filename based on the message
         """
-        safe_message = re.sub(r'[^a-zA-Z0-9_]', '_', message[:30])
+        safe_message = re.sub(r"[^a-zA-Z0-9_]", "_", message[:30])
         safe_message = safe_message[:20]
         return f"{safe_message}_{int(time.time())}.{extension}"
 
@@ -144,7 +147,7 @@ File tree hierarchy should follow this structure:
             # Prepare messages for API call
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                *self.user_histories[user_id]
+                *self.user_histories[user_id],
             ]
 
             # Generate response with timeout
@@ -156,14 +159,16 @@ File tree hierarchy should follow this structure:
                     temperature=0.5,
                     max_tokens=8000,
                     top_p=0.5,
-                    stream=False
+                    stream=False,
                 )
 
             # Extract response
             full_response = completion.choices[0].message.content
-            
+
             # Add AI response to history
-            self.user_histories[user_id].append({"role": "assistant", "content": full_response})
+            self.user_histories[user_id].append(
+                {"role": "assistant", "content": full_response}
+            )
 
             # Check if the response is None or empty
             if not full_response:
@@ -187,16 +192,18 @@ File tree hierarchy should follow this structure:
         Synchronous core logic for file extension detection
         """
         message = str(message)
-        lines = [line.strip() for line in message.split('\n') if line.strip()]
+        lines = [line.strip() for line in message.split("\n") if line.strip()]
 
         if len(lines) < 3:
-            return 'txt', "code.txt"  # Default to txt if not enough lines
+            return "txt", "code.txt"  # Default to txt if not enough lines
 
         lines_to_check = lines[:7] + lines[-7:] if len(lines) > 7 else lines
         found_filenames = []
 
         for line in lines_to_check:
-            filename_match = re.search(r'([a-zA-Z0-9_-]+)\.([a-z0-9]+)', line, re.IGNORECASE)
+            filename_match = re.search(
+                r"([a-zA-Z0-9_-]+)\.([a-z0-9]+)", line, re.IGNORECASE
+            )
             if filename_match:
                 filename = filename_match.group(0)
                 extension = filename_match.group(2).lower()
@@ -206,27 +213,34 @@ File tree hierarchy should follow this structure:
             return found_filenames[0][1], found_filenames[0][0]
 
         # If no valid filename found, fallback to default extension detection
-        return 'txt', "code.txt"  # Ensure default is returned
+        return "txt", "code.txt"  # Ensure default is returned
 
-    @commands.command(name="code") 
+    @commands.command(name="code")
     async def generate_code(self, ctx, *, message):
         """Generate code based on user request"""
         processing_msg = await ctx.send("Generating code...")
-        
+
         try:
             # Generate code response
             code_response = await self.generate_code_response(ctx.author.id, message)
             await processing_msg.delete()
 
             if code_response is None:
-                await ctx.send("Code generation failed: No response received.", reference=ctx.message)
+                await ctx.send(
+                    "Code generation failed: No response received.",
+                    reference=ctx.message,
+                )
                 return
 
             # Determine file extension and filename
-            file_ext, detected_filename = await self.determine_file_extension(code_response)
-            
+            file_ext, detected_filename = await self.determine_file_extension(
+                code_response
+            )
+
             # Create temporary file with proper permissions and UTF-8 encoding
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix=f'.{file_ext}', encoding='utf-8') as temp_file:
+            with tempfile.NamedTemporaryFile(
+                mode="w", delete=False, suffix=f".{file_ext}", encoding="utf-8"
+            ) as temp_file:
                 temp_file.write(code_response)
                 temp_filepath = temp_file.name
 
@@ -235,18 +249,22 @@ File tree hierarchy should follow this structure:
                 discord_file = discord.File(temp_filepath, filename=detected_filename)
                 await ctx.send(file=discord_file, reference=ctx.message)
             except discord.Forbidden:
-                await ctx.send("I don't have permission to send files. Please ensure I have the `attach_files` permission.", reference=ctx.message)
+                await ctx.send(
+                    "I don't have permission to send files. Please ensure I have the `attach_files` permission.",
+                    reference=ctx.message,
+                )
                 return
 
         except Exception as e:
             await ctx.send(f"Code generation error: {e}", reference=ctx.message)
         finally:
             # Clean up temporary file
-            if 'temp_filepath' in locals() and os.path.exists(temp_filepath):
+            if "temp_filepath" in locals() and os.path.exists(temp_filepath):
                 try:
                     os.remove(temp_filepath)
                 except Exception as e:
                     print(f"Error removing temporary file: {e}")
-                    
+
+
 async def setup(bot):
     await bot.add_cog(code(bot))

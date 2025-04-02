@@ -21,11 +21,16 @@ class JailUser(commands.Cog):
         self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=10)
         self.jail_role = None
         self.log_channel = None
-        self.purged_logs_dir = pathlib.Path(data_manager.cog_data_path(self)) / "purged_logs"
+        self.purged_logs_dir = (
+            pathlib.Path(data_manager.cog_data_path(self)) / "purged_logs"
+        )
         try:
+
             self.purged_logs_dir.mkdir(exist_ok=True, parents=True)
         except PermissionError as e:
-            print(f"Critical error: Could not create directory {self.purged_logs_dir}: {e}")
+            print(
+                f"Critical error: Could not create directory {self.purged_logs_dir}: {e}"
+            )
             raise
 
     async def log_action(
@@ -252,7 +257,9 @@ class JailUser(commands.Cog):
                 return await self.purge_with_retry(channel, user)
 
             try:
-                with open(purged_messages_file, "w", buffering=8192, encoding="utf-8") as file:
+                with open(
+                    purged_messages_file, "w", buffering=8192, encoding="utf-8"
+                ) as file:
                     for category_id in categories_to_purge:
                         category = get(ctx.guild.categories, id=category_id)
                         if category:
@@ -318,6 +325,7 @@ class JailUser(commands.Cog):
             await asyncio.sleep(5)
             await reply_message.delete()
         await ctx.message.delete()  # Delete the author's message
+
     @commands.Cog.listener()
     async def on_member_join(self, member):
         # Only process for specific guild
@@ -354,6 +362,7 @@ class JailUser(commands.Cog):
 
             except discord.Forbidden:
                 print(f"Could not process new member {member.id}")
+
     async def send_temp_message(self, ctx, content, delay=3):
         if ctx.channel:
             message = await ctx.channel.send(content)

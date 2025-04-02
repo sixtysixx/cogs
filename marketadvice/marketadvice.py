@@ -10,13 +10,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class MarketAdvice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user_histories = {}  # Dictionary to store conversation history for each user
-        self.groq_client = Groq(
-            api_key=os.getenv("GROQ_API_KEY")
-        )
+        self.user_histories = (
+            {}
+        )  # Dictionary to store conversation history for each user
+        self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.system_prompt = """You are a financial market analysis assistant. Analyze market data and provide insights on:
         - Market trends and price action
         - Support and resistance levels
@@ -37,10 +38,10 @@ class MarketAdvice(commands.Cog):
         self.queue_lock = asyncio.Lock()  # Lock for queue operations
         # Market type suffixes
         self.market_suffixes = {
-            'crypto': ('-USD', '-USDT', '-BTC'),  # Crypto pairs
-            'forex': ('=X',),  # Forex pairs
-            'futures': ('=F',),  # Futures
-            'stocks': ('.', ':'),  # Stocks with exchange suffixes
+            "crypto": ("-USD", "-USDT", "-BTC"),  # Crypto pairs
+            "forex": ("=X",),  # Forex pairs
+            "futures": ("=F",),  # Futures
+            "stocks": (".", ":"),  # Stocks with exchange suffixes
         }
 
     @commands.command(name="clear_history")
@@ -63,21 +64,21 @@ class MarketAdvice(commands.Cog):
     def format_symbol(self, symbol: str) -> str:
         """Format symbol based on market type"""
         symbol = symbol.upper()
-        
+
         # Check if symbol already has a market suffix
         for suffixes in self.market_suffixes.values():
             if any(symbol.endswith(suffix) for suffix in suffixes):
                 return symbol
-                
+
         # Add market-specific formatting
-        if '/' in symbol:  # Forex pair
-            symbol = symbol.replace('/', '') + '=X'
-        elif symbol.endswith('USD') or symbol.endswith('USDT'):  # Crypto
-            if not symbol.endswith('T'):  # If it ends in USD but not USDT
-                symbol = symbol[:-3] + '-USD'
-        elif symbol.startswith('BTC') or symbol.startswith('ETH'):  # Common crypto
-            symbol = symbol + '-USD'
-            
+        if "/" in symbol:  # Forex pair
+            symbol = symbol.replace("/", "") + "=X"
+        elif symbol.endswith("USD") or symbol.endswith("USDT"):  # Crypto
+            if not symbol.endswith("T"):  # If it ends in USD but not USDT
+                symbol = symbol[:-3] + "-USD"
+        elif symbol.startswith("BTC") or symbol.startswith("ETH"):  # Common crypto
+            symbol = symbol + "-USD"
+
         return symbol
 
     async def fetch_market_data(self, symbol, timeframe):
@@ -228,13 +229,15 @@ class MarketAdvice(commands.Cog):
         """Check if user can make a request based on cooldown and queue"""
         async with self.queue_lock:
             now = datetime.now()
-            
+
             # Check user cooldown
             if user_id in self.user_cooldowns:
                 last_request = self.user_cooldowns[user_id]
                 if now - last_request < timedelta(minutes=1):
                     cooldown_end = last_request + timedelta(minutes=1)
-                    cooldown_msg = f"You must wait, retry <t:{int(cooldown_end.timestamp())}:R>"
+                    cooldown_msg = (
+                        f"You must wait, retry <t:{int(cooldown_end.timestamp())}:R>"
+                    )
                     msg = await ctx.send(cooldown_msg)
                     # Schedule message deletion at cooldown end
                     wait_time = (cooldown_end - now).total_seconds()
@@ -262,7 +265,7 @@ class MarketAdvice(commands.Cog):
     async def market_analysis(self, ctx, symbol: str, timeframe: str = "15m"):
         """Generate market analysis based on user request"""
         user_id = ctx.author.id
-        
+
         # Check if user can make request
         can_request, error_msg = await self.can_make_request(user_id, ctx)
         if not can_request:
@@ -293,10 +296,10 @@ class MarketAdvice(commands.Cog):
                 title=f"Market Analysis for {symbol.upper()} ({timeframe})",
                 description=cleaned_analysis,
                 color=discord.Color.blue(),
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             embed.set_footer(text=f"Requested by {ctx.author.display_name}")
-            
+
             # Send analysis in embed
             await ctx.send(embed=embed, reference=ctx.message)
 

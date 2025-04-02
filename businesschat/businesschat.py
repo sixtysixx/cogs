@@ -14,9 +14,7 @@ class bchat(commands.Cog):
         self.bot = bot
         self.user_histories = {}
         self.ai_channel_id = 1306745560077959199  # Specific channel ID
-        self.groq_client = Groq(
-            api_key=os.getenv("GROQ_API_KEY")
-        )
+        self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.system_prompt = """You are a business assistant chatbot dedicated to helping users with a wide range of business-related inquiries. Your key responsibilities include:
 
     Providing Accurate and Relevant Information:
@@ -43,7 +41,6 @@ class bchat(commands.Cog):
 """
         self.logger = logging.getLogger(__name__)
 
-
     async def generate_ai_response(self, user_id, message):
         """Centralized method to generate AI response"""
         try:
@@ -59,7 +56,7 @@ class bchat(commands.Cog):
             # Prepare messages for API call
             messages = [
                 {"role": "system", "content": self.system_prompt},
-                *self.user_histories[user_id]
+                *self.user_histories[user_id],
             ]
 
             # Generate response with timeout
@@ -71,12 +68,14 @@ class bchat(commands.Cog):
                     temperature=0.5,
                     max_tokens=8000,
                     top_p=0.5,
-                    stream=False
+                    stream=False,
                 )
 
             # Extract and store AI response
             full_response = completion.choices[0].message.content
-            self.user_histories[user_id].append({"role": "assistant", "content": full_response})
+            self.user_histories[user_id].append(
+                {"role": "assistant", "content": full_response}
+            )
 
             return full_response
 
@@ -91,51 +90,56 @@ class bchat(commands.Cog):
     async def on_message(self, message):
         """Listener to handle messages in the specific AI channel"""
         # Ignore messages from bots and in other channels
-        if (message.author.bot or 
-            message.channel.id != self.ai_channel_id):
+        if message.author.bot or message.channel.id != self.ai_channel_id:
             return
 
         # Process the message as an AI chat request
         try:
             # Send processing indicator
-            processing_msg = await message.channel.send(f"{message.author.mention} Processing your request...")
-            
+            processing_msg = await message.channel.send(
+                f"{message.author.mention} Processing your request..."
+            )
+
             # Generate AI response
-            response = await self.generate_ai_response(message.author.id, message.content)
+            response = await self.generate_ai_response(
+                message.author.id, message.content
+            )
             await processing_msg.delete()
 
             # Split and send response
-            chunks = [response[i:i+4000] for i in range(0, len(response), 4000)]
+            chunks = [response[i : i + 4000] for i in range(0, len(response), 4000)]
             for chunk in chunks:
                 embed = discord.Embed(
-                    title="AI Business Assistant", 
-                    description=chunk, 
-                    color=discord.Color.blue()
+                    title="AI Business Assistant",
+                    description=chunk,
+                    color=discord.Color.blue(),
                 )
                 embed.set_footer(text="Use !!clearbchat to reset conversation")
-                
+
                 # Reply directly to the user
                 await message.reply(embed=embed)
 
         except Exception as e:
-            await message.channel.send(f"{message.author.mention} An unexpected error occurred: {e}")
+            await message.channel.send(
+                f"{message.author.mention} An unexpected error occurred: {e}"
+            )
 
     @commands.command(name="bchat")
     async def code(self, ctx, *, message):
         """Traditional chat command"""
         processing_msg = await ctx.send("Processing your request...")
-        
+
         try:
             response = await self.generate_ai_response(ctx.author.id, message)
             await processing_msg.delete()
 
             # Split and send response
-            chunks = [response[i:i+2000] for i in range(0, len(response), 2000)]
+            chunks = [response[i : i + 2000] for i in range(0, len(response), 2000)]
             for chunk in chunks:
                 embed = discord.Embed(
-                    title="AI Business Assistant", 
-                    description=chunk, 
-                    color=discord.Color.blue()
+                    title="AI Business Assistant",
+                    description=chunk,
+                    color=discord.Color.blue(),
                 )
                 embed.set_footer(text="Use !!clearbchat to reset conversation")
                 await ctx.send(embed=embed)
@@ -160,6 +164,7 @@ class bchat(commands.Cog):
         """Wipe all conversation histories (owner-only)"""
         self.user_histories.clear()
         await ctx.send("All conversation histories have been wiped.")
+
 
 async def setup(bot):
     await bot.add_cog(bchat(bot))
