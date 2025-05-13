@@ -154,10 +154,10 @@ File tree hierarchy should follow this structure:
             async with asyncio.timeout(60):
                 completion = await asyncio.to_thread(
                     self.groq_client.chat.completions.create,
-                    model="qwen-2.5-coder-32b",
+                    model="meta-llama/llama-4-scout-17b-16e-instruct",
                     messages=messages,
                     temperature=0.5,
-                    max_tokens=16000,
+                    max_tokens=8192,
                     top_p=0.5,
                     stream=False,
                 )

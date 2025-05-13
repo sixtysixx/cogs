@@ -13,7 +13,7 @@ class bchat(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.user_histories = {}
-        self.ai_channel_id = 1306745560077959199  # Specific channel ID
+        self.ai_channel_id = 1358498948289134896  # Specific channel ID
         self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.system_prompt = """You are a business assistant chatbot dedicated to helping users with a wide range of business-related inquiries. Your key responsibilities include:
 
