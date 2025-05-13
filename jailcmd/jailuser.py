@@ -1,4 +1,3 @@
-# /home/six/Documents/cogs/jailcmd/jailuser.py
 from redbot.core import commands, data_manager # Imports commands and data_manager from redbot.core for cog functionality
 from discord.utils import get # Imports get from discord.utils for fetching objects like roles and channels
 from datetime import datetime, timedelta # Imports datetime and timedelta for time-based operations
