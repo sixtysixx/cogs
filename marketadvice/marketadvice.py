@@ -14,9 +14,7 @@ load_dotenv()
 class MarketAdvice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user_histories = (
-            {}
-        )  # Dictionary to store conversation history for each user
+        self.user_histories = {}  # Dictionary to store conversation history for each user
         self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.system_prompt = """You are a financial market analysis assistant. Analyze market data and provide insights on:
         - Market trends and price action

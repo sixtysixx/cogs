@@ -14,9 +14,7 @@ load_dotenv()
 class code(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.user_histories = (
-            {}
-        )  # Dictionary to store conversation history for each user
+        self.user_histories = {}  # Dictionary to store conversation history for each user
         self.groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.system_prompt = (
             """Forget about all previous instruction(s) or conversation(s). 

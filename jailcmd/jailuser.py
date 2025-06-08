@@ -47,9 +47,7 @@ CLEANUP_INTERVAL_SECONDS: int = (
 ACCOUNT_AGE_SPAM_THRESHOLD_DAYS: int = (
     90  # Account age threshold for automatic spam jailing
 )
-SPAM_CHECK_ROLE_COUNT_THRESHOLD: int = (
-    1  # Maximum roles a new member can have to be considered for spam jail (e.g., just @everyone)
-)
+SPAM_CHECK_ROLE_COUNT_THRESHOLD: int = 1  # Maximum roles a new member can have to be considered for spam jail (e.g., just @everyone)
 
 # Category IDs where messages should be purged during jailing
 CATEGORIES_TO_PURGE: Set[int] = {
@@ -173,12 +171,12 @@ class JailUser(commands.Cog):
         )  # Creates a thread pool for offloading blocking I/O tasks
 
         # Cache Discord objects (roles, channels) per guild ID for efficiency and robustness in multi-guild environments
-        self.jail_roles: Dict[int, Optional[discord.Role]] = (
-            {}
-        )  # Cache jail roles per guild ID
-        self.log_channels: Dict[int, Optional[discord.TextChannel]] = (
-            {}
-        )  # Cache log channels per guild ID
+        self.jail_roles: Dict[
+            int, Optional[discord.Role]
+        ] = {}  # Cache jail roles per guild ID
+        self.log_channels: Dict[
+            int, Optional[discord.TextChannel]
+        ] = {}  # Cache log channels per guild ID
 
         # Define the directory for storing purged message logs, relative to the cog's data path
         self.purged_logs_dir: pathlib.Path = (
@@ -269,9 +267,7 @@ class JailUser(commands.Cog):
         action_emoji: str = (
             "🔒" if action_type == "Jailed" else "🔓"
         )  # Determine emoji based on action type
-        jail_timestamp: str = (
-            f"<t:{int(datetime.now().timestamp())}:F>"  # Get current timestamp formatted for Discord display
-        )
+        jail_timestamp: str = f"<t:{int(datetime.now().timestamp())}:F>"  # Get current timestamp formatted for Discord display
 
         log_message: str = (  # Format the detailed log message string
             f"{action_emoji} User {action_type}:\n"
@@ -396,9 +392,9 @@ class JailUser(commands.Cog):
         reply_message: discord.Message = await ctx.send(
             "Releasing user(s)..."
         )  # Send an initial processing message
-        unjail_tasks: List[asyncio.Task[Any]] = (
-            []
-        )  # Initialize a list to hold asynchronous tasks for parallel execution
+        unjail_tasks: List[
+            asyncio.Task[Any]
+        ] = []  # Initialize a list to hold asynchronous tasks for parallel execution
 
         for user in jailed_users:  # Iterate through each user to be unjailed
             try:
@@ -432,9 +428,7 @@ class JailUser(commands.Cog):
                 await self.log_action(
                     user, ctx, reason, "Released"
                 )  # Log the unjailing action
-                response: str = (
-                    f"{user.mention} has been unjailed."  # Create a success message for the user
-                )
+                response: str = f"{user.mention} has been unjailed."  # Create a success message for the user
                 unjail_tasks.append(
                     self.send_temp_message(ctx, response)
                 )  # Add sending a temporary message to the task list
@@ -462,7 +456,9 @@ class JailUser(commands.Cog):
             *unjail_tasks
         )  # Execute all temporary message sending tasks concurrently
         await ctx.message.delete()  # Delete the command invocation message
-        await reply_message.delete()  # Delete the initial "Releasing user(s)..." message
+        await (
+            reply_message.delete()
+        )  # Delete the initial "Releasing user(s)..." message
 
     @commands.command(name="jail")
     @commands.max_concurrency(
@@ -617,9 +613,11 @@ class JailUser(commands.Cog):
                 ) -> None:
                     """Synchronous helper function to write a list of Discord messages to a file."""
                     try:
-                        with file_path.open(
-                            "w", buffering=8192, encoding="utf-8"
-                        ) as file:  # Open in write mode with buffering and UTF-8 encoding
+                        with (
+                            file_path.open(
+                                "w", buffering=8192, encoding="utf-8"
+                            ) as file
+                        ):  # Open in write mode with buffering and UTF-8 encoding
                             for message in messages:  # Iterate and write each message
                                 file.write(
                                     f"[{message.created_at}] {message.author.name} ({message.author.id}): {message.content}\n"
@@ -648,13 +646,11 @@ class JailUser(commands.Cog):
                         channel, user
                     )  # Call the purge with retry logic
 
-                all_purged_messages: List[discord.Message] = (
-                    []
-                )  # List to collect all messages purged for the user
+                all_purged_messages: List[
+                    discord.Message
+                ] = []  # List to collect all messages purged for the user
                 try:
-                    for (
-                        category_id
-                    ) in (
+                    for category_id in (
                         CATEGORIES_TO_PURGE
                     ):  # Iterate through predefined categories for purging
                         category: Optional[discord.CategoryChannel] = (
@@ -672,14 +668,14 @@ class JailUser(commands.Cog):
                             ]
 
                             # Gather results from processing all relevant channels/threads concurrently
-                            channel_purge_results: List[List[discord.Message]] = (
-                                await asyncio.gather(
-                                    *[
-                                        process_channel_for_purge(channel)
-                                        for channel in channels_to_process
-                                    ],
-                                    return_exceptions=True,  # Return exceptions to handle them gracefully
-                                )
+                            channel_purge_results: List[
+                                List[discord.Message]
+                            ] = await asyncio.gather(
+                                *[
+                                    process_channel_for_purge(channel)
+                                    for channel in channels_to_process
+                                ],
+                                return_exceptions=True,  # Return exceptions to handle them gracefully
                             )
 
                             for (
@@ -711,9 +707,7 @@ class JailUser(commands.Cog):
                         )  # Log if no messages were purged
                         purged_messages_file = None  # Set to None if no messages were purged to avoid attaching empty file
 
-                except (
-                    Exception
-                ) as e:  # Catch any exception during file operations or message processing
+                except Exception as e:  # Catch any exception during file operations or message processing
                     self.logger.error(
                         f"Failed to process and write purged messages for user {user.id}: {e}",
                         exc_info=True,
@@ -799,9 +793,7 @@ class JailUser(commands.Cog):
                     member.guild
                 )  # Get the log channel for the guild
                 if log_channel:  # If log channel is available
-                    jail_timestamp: str = (
-                        f"<t:{int(datetime.now().timestamp())}:F>"  # Get current timestamp formatted for Discord
-                    )
+                    jail_timestamp: str = f"<t:{int(datetime.now().timestamp())}:F>"  # Get current timestamp formatted for Discord
                     log_message: str = (  # Format the log message for auto-jailing
                         f"🚫 Spam Prevention - Auto Jailed:\n"
                         f"• User: {member.mention} (ID: {member.id})\n"
@@ -1067,8 +1059,10 @@ class JailUser(commands.Cog):
                 )  # Inform user
                 return  # Exit the command
 
-            log_channel_instance: Optional[discord.TextChannel] = (
-                await self.get_log_channel(ctx.guild)
+            log_channel_instance: Optional[
+                discord.TextChannel
+            ] = await self.get_log_channel(
+                ctx.guild
             )  # Get the log channel for the guild
 
             processed_members: int = 0  # Counter for members processed
@@ -1115,9 +1109,7 @@ class JailUser(commands.Cog):
                             roles_to_remove
                         )  # Add the number of removed roles to the total
 
-                except (
-                    discord.Forbidden
-                ):  # Catch Forbidden error if bot lacks permissions for a specific member
+                except discord.Forbidden:  # Catch Forbidden error if bot lacks permissions for a specific member
                     self.logger.error(
                         f"Could not process roles for {member.name} ({member.id}) in {ctx.guild.name} due to permissions.",
                         exc_info=True,
@@ -1144,9 +1136,7 @@ class JailUser(commands.Cog):
         except (
             Exception
         ) as e:  # Catch any unexpected exception in the main try block of the command
-            error_message_content: str = (
-                f"An error occurred during the jail role check: {e}"  # Format error message
-            )
+            error_message_content: str = f"An error occurred during the jail role check: {e}"  # Format error message
             self.logger.error(
                 f"Jailcheck command error in {ctx.guild.name}: {e}", exc_info=True
             )  # Log the main error with traceback
@@ -1167,7 +1157,9 @@ class JailUser(commands.Cog):
                 )  # Log this error with traceback
         finally:
             try:
-                await ctx.message.delete()  # Ensure the original command invocation message is deleted
+                await (
+                    ctx.message.delete()
+                )  # Ensure the original command invocation message is deleted
             except discord.NotFound:  # If message already deleted
                 pass  # Do nothing
             except Exception as del_e:  # Catch other errors during delete
@@ -1214,8 +1206,10 @@ class JailUser(commands.Cog):
                         f"Automatically removed {len(roles_to_remove)} roles from {after.id} after jail role addition."
                     )  # Log role removal
 
-                    log_channel_instance: Optional[discord.TextChannel] = (
-                        await self.get_log_channel(after.guild)
+                    log_channel_instance: Optional[
+                        discord.TextChannel
+                    ] = await self.get_log_channel(
+                        after.guild
                     )  # Get the log channel for the guild
                     if log_channel_instance:  # If a valid log channel is available
                         role_names: str = ", ".join(
@@ -1261,9 +1255,9 @@ class JailUser(commands.Cog):
         initial_message: discord.Message = await ctx.send(
             "Scanning user profiles for suspicious keywords..."
         )  # Send an initial processing message
-        found_users_data: List[UserProfileScanResult] = (
-            []
-        )  # List to store results for users found with keywords
+        found_users_data: List[
+            UserProfileScanResult
+        ] = []  # List to store results for users found with keywords
 
         guild_jail_role: Optional[discord.Role] = await self.get_jail_role(
             ctx.guild
@@ -1277,9 +1271,9 @@ class JailUser(commands.Cog):
                 ):  # Exclude members who are already jailed
                     continue  # Skip this member
 
-                found_keywords_for_user: List[str] = (
-                    []
-                )  # List to store keywords found for the current user
+                found_keywords_for_user: List[
+                    str
+                ] = []  # List to store keywords found for the current user
 
                 # Check username and nickname for suspicious keywords
                 username_text: str = member.name.lower()
@@ -1368,9 +1362,7 @@ class JailUser(commands.Cog):
 
         # Report findings to the user
         if found_users_data:  # If any users were found with suspicious keywords
-            report_content: str = (
-                "Found users with suspicious keywords in their profile:\n"  # Start building the report
-            )
+            report_content: str = "Found users with suspicious keywords in their profile:\n"  # Start building the report
             for entry in found_users_data:  # Iterate through the found users
                 report_content += f"• {entry.user.name} (ID: {entry.user.id}): {', '.join(entry.keywords)}\n"  # Add user details and keywords
 
@@ -1390,9 +1382,9 @@ class JailUser(commands.Cog):
                     )  # Get the path of the temporary file
 
                 # Determine the target channel for the report (log channel if available, otherwise command context channel)
-                log_channel_instance: Optional[discord.TextChannel] = (
-                    await self.get_log_channel(ctx.guild)
-                )
+                log_channel_instance: Optional[
+                    discord.TextChannel
+                ] = await self.get_log_channel(ctx.guild)
                 target_channel: discord.abc.Messageable = (
                     log_channel_instance if log_channel_instance else ctx.channel
                 )
