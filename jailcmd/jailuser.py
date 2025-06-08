@@ -10,7 +10,6 @@ from dataclasses import dataclass, field
 
 import discord
 from redbot.core import commands, data_manager
-from discord.utils import get
 
 # Configure logging for the cog using RedBot's standard logging setup
 log = logging.getLogger("red.jailuser")
